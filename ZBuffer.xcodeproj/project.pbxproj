@@ -42,11 +42,13 @@
 		E21BE68D273D616200EE6DFC /* stb_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		E21BE68E273D619B00EE6DFC /* stb_image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = stb_image.cpp; sourceTree = "<group>"; };
 		E21BE691273D80D100EE6DFC /* bitmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = "<group>"; };
+		E223BFF8273E4D98005F7643 /* load_obj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = load_obj.h; sourceTree = "<group>"; };
 		E2499B89273D244C00B7015C /* ZBuffer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ZBuffer; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2499B8C273D244C00B7015C /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		E2499B99273D272200B7015C /* glad.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = glad.c; sourceTree = "<group>"; };
 		E2499B9C273D27ED00B7015C /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		E2499B9F273D43BD00B7015C /* glad.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glad.h; sourceTree = "<group>"; };
+		E295B29D273E444100CE8801 /* tri_vec.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tri_vec.h; sourceTree = "<group>"; };
 		E29953A2273D462C00B58795 /* khrplatform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = khrplatform.h; sourceTree = "<group>"; };
 		E29953A4273D46AE00B58795 /* glfw3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glfw3.h; sourceTree = "<group>"; };
 		E29953A5273D46EB00B58795 /* glfw3native.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glfw3native.h; sourceTree = "<group>"; };
@@ -102,6 +104,8 @@
 				E2499B9E273D43A800B7015C /* glad */,
 				E21BE68D273D616200EE6DFC /* stb_image.h */,
 				E21BE691273D80D100EE6DFC /* bitmap.h */,
+				E295B29D273E444100CE8801 /* tri_vec.h */,
+				E223BFF8273E4D98005F7643 /* load_obj.h */,
 			);
 			path = include;
 			sourceTree = "<group>";

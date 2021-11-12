@@ -12,11 +12,12 @@
 #include <iostream>
 #include <fstream>
 
+#include "include/load_obj.h" //必须写在fstream之后！
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-#define DIM     600
+const unsigned int ZOOM = 100;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -80,19 +81,32 @@ int main(int argc, const char * argv[]) {
         return -1;
     }
     
+    
+    
+    
+    
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
     printf("%d, %d\n", width, height);
     //让其在Apple的retina显示屏上也能正常显示
     
-    //int width, height, nrChannels;
-        stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    //unsigned char *data = stbi_load(std::filesystem::path("resources/textures/container.jpg").c_str(), &width, &height, &nrChannels, 0);
-    // data是RGBRGBRGB
     Bitmap bitmap(width, height);
     unsigned char *ptr = bitmap.get_ptr();
     kernel(ptr, bitmap.x, bitmap.y);
+    
+    int width_t, height_t, nrChannels;
+        stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+    unsigned char *texture = stbi_load(std::filesystem::path("resources/SkillObj_Dummy_Tex_Diffuse.png").c_str(), &width_t, &height_t, &nrChannels, 0);
+    // data是RGBRGBRGB
+    
+    std::string objfile = "resources/AvatarSkill_Dummy_Model.obj";
+    TriangleMesh mesh;
+    loadObj(objfile, mesh);
+    
+    
+    
+    
     
     while(!glfwWindowShouldClose(window))
     {
@@ -102,7 +116,8 @@ int main(int argc, const char * argv[]) {
         // 渲染
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawPixels(bitmap.x, bitmap.y, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.pixels);
+        //glDrawPixels(bitmap.x, bitmap.y, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.pixels);
+        glDrawPixels(width_t, height_t, GL_RGBA, GL_UNSIGNED_BYTE, texture);
         
         // 检查并调用事件，交换缓冲
         glfwSwapBuffers(window);
