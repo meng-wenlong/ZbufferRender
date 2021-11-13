@@ -93,30 +93,31 @@ int main(int argc, const char * argv[]) {
     
     
     
-    
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
     printf("%d, %d\n", width, height);
     //让其在Apple的retina显示屏上也能正常显示
     
-    Bitmap bitmap(width, height);
-    unsigned char *ptr = bitmap.get_ptr();
+    // Bitmap bitmap(width, height);
+    // unsigned char *ptr = bitmap.get_ptr();
     
+    //载入纹理图片
     int width_t, height_t, nrChannels;
         stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     unsigned char *texture = stbi_load(std::filesystem::path("resources/SkillObj_Dummy_Tex_Diffuse.png").c_str(), &width_t, &height_t, &nrChannels, 0);
     // texture是RGBARGBARGBA
     Bitmap tex(width_t, height_t);
     tex.pixels = texture;
-    kernel(&tex, 800, 600, tex.pixels);
+    // kernel(&tex, 800, 600, tex.pixels);
     
+    //载入obj文件
     std::string objfile = "resources/AvatarSkill_Dummy_Model.obj";
     TriangleMesh mesh;
     loadObj(objfile, mesh);
     
     // 构建分类多边形表
-    // classifiedPolygons是一个数组，数组中的元素是指向vector<Polygon>的指针，每个vector<Polygon>对应一条y扫描线，所以classifiedPolygons本身是一个二重指针
+    // classifiedPolygons 是一个数组，数组中的元素是指向 vector<Polygon> 的指针，每个 vector<Polygon> 对应一条y扫描线，所以 classifiedPolygons 本身是一个二重指针
     std::cout << "Building classified polygon table..." << std::endl;
     vector<Polygon> classifiedPolygons[height];
     buildClassifiedPolygonTable(classifiedPolygons, mesh.faces, mesh.verts, mesh.bounding_sphere_c, ZOOM, width, height);
@@ -126,9 +127,37 @@ int main(int argc, const char * argv[]) {
     // 次に、分類エッジテーブルを構築します
     // 「分类边表」中的x坐标只需要记录上端点的
     std::cout << "Building classified edge table..." << std::endl;
-    vector<CEdge> classifiedEdge[height];
+    vector<CEdge> classifiedEdges[height];
     // 用vector构成的矩阵，看起来有些奇怪
-    buildClassifiedEdgeTable(classifiedEdge, mesh.faces, mesh.verts, mesh.bounding_sphere_c, ZOOM, width, height);
+    buildClassifiedEdgeTable(classifiedEdges, mesh.faces, mesh.verts, mesh.bounding_sphere_c, ZOOM, width, height);
+    
+    //定义活化多边形表和活化边表
+    vector<Polygon> activatedPolygons;
+    vector<AEdge> activatedEdges;
+    
+    //定义帧缓冲器并初始化
+    Bitmap framebuffer(width, height);
+    unsigned char *ptr = framebuffer.get_ptr();
+    for (int y=0; y<width; y++) {
+        for (int x=0; x<height; x++) {
+            int offset = x + y*height;
+            ptr[offset*4 + 0] = 255;
+            ptr[offset*4 + 1] = 255;
+            ptr[offset*4 + 2] = 255;
+            ptr[offset*4 + 3] = 255;
+        }
+    }
+    //定义z缓冲器并初始化
+    double *zbuffer = (double *)malloc( sizeof(double)* width * height );
+    for (int y=0; y<width; y++) {
+        for (int x=0; x<height; x++) {
+            int offset = x + y*height;
+            zbuffer[offset] = -10000; //-10000应该是最小值了
+        }
+    }
+    
+    //开始扫描
+    
     
     
     
@@ -141,7 +170,8 @@ int main(int argc, const char * argv[]) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         //glDrawPixels(bitmap.x, bitmap.y, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.pixels);
-        glDrawPixels(width_t, height_t, GL_RGBA, GL_UNSIGNED_BYTE, texture);
+        //glDrawPixels(width_t, height_t, GL_RGBA, GL_UNSIGNED_BYTE, texture);
+        glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, framebuffer.get_ptr());
         
         // 检查并调用事件，交换缓冲
         glfwSwapBuffers(window);

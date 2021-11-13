@@ -20,15 +20,31 @@ struct Polygon {
     int dy;
 };
 
+//分类边
 struct CEdge {
-    int x;      //边上端点的x坐标
+    int x;      //边上端点的x坐标 (应该是double型的)
     double dx;  //相邻两条扫描线焦点的x坐标差
-    int dy;  //边所跨越的扫描线数目
+    int dy;     //边所跨越的扫描线数目
     int Pid;    //边所属的多边形的编号
+};
+
+//活化边
+struct AEdge {
+    double  xl;     //左交点的x坐标
+    double  dxl;    //(左交点边上)两相邻扫描线交点的x坐标之差
+    int     dyl;    //剩余扫描线数
+    double  xr;
+    double  dxr;
+    int     dyr;
+    double  zl;     //左交点处多边形所在的平面的深度值
+    double  dzx;    //沿扫描线向右走过一个像素时，多边形所在的平面的深度增量
+    double  dzy;    //沿y方向向下移过一根扫描线时，多边形所在的平面的深度增量
+    int     Pid;
 };
 
 void getPixel(Bitmap *bitmap, int u, int v, unsigned char *ptr);
 void buildClassifiedPolygonTable(vector<Polygon>* ptr, vector<TriangleFace>& faces, vector<vec3f>& verts, vec3f centor, unsigned int zoom, int width, int height);
+struct CEdge processOneCEdge(vec3f vert0, vec3f vert1, double yc, double xc, unsigned int zoom, int width, int height, unsigned int i);
 void buildClassifiedEdgeTable(vector<CEdge>* ptr, vector<TriangleFace>& faces, vector<vec3f>& verts, vec3f centor, unsigned int zoom, int width, int height);
 
 
@@ -97,11 +113,12 @@ struct CEdge processOneCEdge(vec3f vert0, vec3f vert1, double yc, double xc, uns
     int u_ymax = zoom*(x_ymax - xc) + width/2;
     
     // dx = -1/k = -(x2 - x1)/(y2 - y1) = (x1 - x2)/(y2 - y1)
-    double dx = 0;
+    // double dx = 1600;
     double delta_y = vert1.y - vert0.y;
-    if (delta_y > GLH_EPSILON_2) {
-        dx = (vert0.x - vert1.x) / delta_y;
-    } else {dx = width;} //对斜率太小的线的处理
+    double dx = (vert0.x - vert1.x) / delta_y; // 交给编译器来处理吧
+//    if (delta_y > GLH_EPSILON_2) {
+//        dx = (vert0.x - vert1.x) / delta_y;
+//    } else {dx = width;} //对斜率太小的线的处理
     
     struct CEdge tri_edge = {u_ymax, dx, dy, static_cast<int>(i)};
     return tri_edge;
@@ -115,27 +132,24 @@ void buildClassifiedEdgeTable(vector<CEdge>* ptr, vector<TriangleFace>& faces, v
         //每个三角形有三条边【0，1】【0，2】【1，2】
         // --- 处理边【0，1】---
         double ymax = fmax( verts[ faces[i].v[0] ].y, verts[ faces[i].v[1] ].y );
-        double ymin = fmin( verts[ faces[i].v[0] ].y, verts[ faces[i].v[1] ].y );
         int vmax = zoom*(ymax - yc) + height/2; //转化为int
-        int vmin = zoom*(ymin - yc) + height/2; //转化为int
-        int dy = vmax - vmin + 1;
-        
-        int vid_ymax = ( verts[ faces[i].v[0] ].y>verts[ faces[i].v[1] ].y ) ? 0:1;
-        double x_ymax = verts[ faces[i].v[vid_ymax] ].x;
-        int u_ymax = zoom*(x_ymax - xc) + width/2;
-        
-        // dx = -1/k = -(x2 - x1)/(y2 - y1) = (x1 - x2)/(y2 - y1)
-        double dx = 0;
-        double delta_y = verts[ faces[i].v[1] ].y - verts[ faces[i].v[0] ].y;
-        if (delta_y > GLH_EPSILON_2) {
-            dx = (verts[ faces[i].v[0] ].x - verts[ faces[i].v[1] ].x) / delta_y;
-        } else {dx = width;}
-        
+        struct CEdge tri_edge = processOneCEdge(verts[ faces[i].v[0] ], verts[ faces[i].v[1] ], yc, xc, zoom, width, height, i);
         // push
-        struct CEdge tri_edge = {u_ymax, dx, dy, static_cast<int>(i)};
         ptr[vmax].push_back( tri_edge );
-        // --- 处理边【0，2】---
         
+        // --- 处理边【0，2】---
+        ymax = fmax( verts[ faces[i].v[0] ].y, verts[ faces[i].v[2] ].y );
+        vmax = zoom*(ymax - yc) + height/2; //转化为int
+        tri_edge = processOneCEdge(verts[ faces[i].v[0] ], verts[ faces[i].v[2] ], yc, xc, zoom, width, height, i);
+        // push
+        ptr[vmax].push_back( tri_edge );
+        
+        // --- 处理边【1，2】---
+        ymax = fmax( verts[ faces[i].v[1] ].y, verts[ faces[i].v[2] ].y );
+        vmax = zoom*(ymax - yc) + height/2; //转化为int
+        tri_edge = processOneCEdge(verts[ faces[i].v[1] ], verts[ faces[i].v[2] ], yc, xc, zoom, width, height, i);
+        // push
+        ptr[vmax].push_back( tri_edge );
     }
 }
 
