@@ -43,6 +43,7 @@
 		E21BE68E273D619B00EE6DFC /* stb_image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = stb_image.cpp; sourceTree = "<group>"; };
 		E21BE691273D80D100EE6DFC /* bitmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = "<group>"; };
 		E223BFF8273E4D98005F7643 /* load_obj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = load_obj.h; sourceTree = "<group>"; };
+		E223BFF9273E8682005F7643 /* rendering.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rendering.h; sourceTree = "<group>"; };
 		E2499B89273D244C00B7015C /* ZBuffer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ZBuffer; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2499B8C273D244C00B7015C /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		E2499B99273D272200B7015C /* glad.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = glad.c; sourceTree = "<group>"; };
@@ -106,6 +107,7 @@
 				E21BE691273D80D100EE6DFC /* bitmap.h */,
 				E295B29D273E444100CE8801 /* tri_vec.h */,
 				E223BFF8273E4D98005F7643 /* load_obj.h */,
+				E223BFF9273E8682005F7643 /* rendering.h */,
 			);
 			path = include;
 			sourceTree = "<group>";

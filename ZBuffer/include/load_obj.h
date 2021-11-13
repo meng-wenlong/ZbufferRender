@@ -222,6 +222,21 @@ void loadObj(const std::string filename, TriangleMesh &mesh)
 
     mesh.bounding_sphere_c = center;
     mesh.bounding_sphere_r = radius;
+    
+    // claculate uv bounding
+    double umin = mesh.uvs[0].u;
+    double umax = umin;
+    double vmin = mesh.uvs[0].v;
+    double vmax = vmin;
+    for (unsigned int i=0; i<mesh.uvs.size(); i++)
+    {
+        double u = mesh.uvs[i].u;
+        double v = mesh.uvs[i].v;
+        if (u > umax) {umax = u;}
+        else if (u < umin) {umin = u;}
+        if (v > vmax) {vmax = v;}
+        else if (v < vmin) {vmin = v;}
+    }
 
     cout << "----------obj file loaded-------------" << endl;
     cout << "number of faces:" << mesh.faces.size() << " number of vertices:" << mesh.verts.size() << endl;
@@ -230,6 +245,9 @@ void loadObj(const std::string filename, TriangleMesh &mesh)
          << mesh.bounding_box[1].x << "," << mesh.bounding_box[1].y << "," << mesh.bounding_box[1].z << ")" << endl
          << "obj bounding sphere center:" << mesh.bounding_sphere_c.x << "," << mesh.bounding_sphere_c.y << "," << mesh.bounding_sphere_c.z << endl
          << "obj bounding sphere radius:" << mesh.bounding_sphere_r << endl;
+    cout << "uv bounding: min:("
+         << umin << "," << vmin << ") max:("
+         << umax << "," << vmax << ")" << endl;
 }
 
 #endif /* load_obj_h */

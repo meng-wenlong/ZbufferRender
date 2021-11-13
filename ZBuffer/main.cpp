@@ -13,11 +13,13 @@
 #include <fstream>
 
 #include "include/load_obj.h" //必须写在fstream之后！
+#include "include/rendering.h"
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-const unsigned int ZOOM = 100;
+const unsigned int ZOOM = 1000;
+// ZOOM = 1000 表示obj中坐标变化了1相当于窗口中的坐标变化了1000
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -32,18 +34,25 @@ void processInput(GLFWwindow *window)
 }
 
 
-void kernel( unsigned char* ptr, int width, int height ) {
+void kernel(Bitmap *bitmap, int u, int v, unsigned char *ptr)
+{
+    int width = bitmap->x;
+    int height = bitmap->y;
+    int offset = v*width + u;
     for (int y=0; y<width; y++) {
         for (int x=0; x<height; x++) {
-            int offset = x + y*height;
-            
-            ptr[offset*4 + 0] = 255;
-            ptr[offset*4 + 1] = 255;
-            ptr[offset*4 + 2] = 0;
-            ptr[offset*4 + 3] = 255;
+            int offset_temp = x + y*height;
+            if (offset_temp < offset && offset_temp%width < u){
+                ptr[offset_temp*4 + 0] = 255;
+                ptr[offset_temp*4 + 1] = 255;
+                ptr[offset_temp*4 + 2] = 0;
+                ptr[offset_temp*4 + 3] = 255;
+            }
         }
     }
 }
+
+
 
 
 int main(int argc, const char * argv[]) {
@@ -93,18 +102,25 @@ int main(int argc, const char * argv[]) {
     
     Bitmap bitmap(width, height);
     unsigned char *ptr = bitmap.get_ptr();
-    kernel(ptr, bitmap.x, bitmap.y);
     
     int width_t, height_t, nrChannels;
         stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     unsigned char *texture = stbi_load(std::filesystem::path("resources/SkillObj_Dummy_Tex_Diffuse.png").c_str(), &width_t, &height_t, &nrChannels, 0);
-    // data是RGBRGBRGB
+    // texture是RGBARGBARGBA
+    Bitmap tex(width_t, height_t);
+    tex.pixels = texture;
+    kernel(&tex, 800, 600, tex.pixels);
     
     std::string objfile = "resources/AvatarSkill_Dummy_Model.obj";
     TriangleMesh mesh;
     loadObj(objfile, mesh);
     
-    
+    // 构建分类多边形表
+    // classifiedPolygons是一个数组，数组中的元素是指向vector<Polygon>的指针，每个vector<Polygon>对应一条y扫描线，所以classifiedPolygons本身是一个二重指针
+    std::cout << "Building classified polygon table..." << std::endl;
+    vector<Polygon> classifiedPolygons[height];
+    buildClassifiedPolygonTable(classifiedPolygons, mesh.faces, mesh.verts, mesh.bounding_sphere_c, ZOOM, width, height);
+    // 看看分类多边形表构建得对不对
     
     
     
