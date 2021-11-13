@@ -121,6 +121,14 @@ int main(int argc, const char * argv[]) {
     vector<Polygon> classifiedPolygons[height];
     buildClassifiedPolygonTable(classifiedPolygons, mesh.faces, mesh.verts, mesh.bounding_sphere_c, ZOOM, width, height);
     // 看看分类多边形表构建得对不对
+    // たぶんいい感じ
+    
+    // 次に、分類エッジテーブルを構築します
+    // 「分类边表」中的x坐标只需要记录上端点的
+    std::cout << "Building classified edge table..." << std::endl;
+    vector<CEdge> classifiedEdge[height];
+    // 用vector构成的矩阵，看起来有些奇怪
+    buildClassifiedEdgeTable(classifiedEdge, mesh.faces, mesh.verts, mesh.bounding_sphere_c, ZOOM, width, height);
     
     
     
