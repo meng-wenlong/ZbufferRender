@@ -18,7 +18,7 @@
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-const unsigned int ZOOM = 1000;
+const unsigned int ZOOM = 1500;
 // ZOOM = 1000 表示obj中坐标变化了1相当于窗口中的坐标变化了1000
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -156,7 +156,154 @@ int main(int argc, const char * argv[]) {
         }
     }
     
+    
     //开始扫描
+    for (int i=0; i<height-50; i++) {  //处理第i条扫描线
+        //检查分类多边形表，如果有新的多边形涉及该扫描线，则把它放入到活化多边形表中
+        for (int j=0; j<classifiedPolygons[i].size(); j++) {
+            activatedPolygons.push_back(classifiedPolygons[i][j]);
+            int Pid = classifiedPolygons[i][j].Pid;
+            
+            //如果有新的多边形加入到活化多边形表中，则把该多边形在oxy平面上的投影和扫描线相交的边加入到活化边表中
+            //需要从对应height的分类边表中选择两条边插入
+            //对应height的分类边表中一定有两条边的Pid是对应多边形的🆔，但是，我要怎样确定它们哪个是靠左的边，哪个是靠右的边呢？
+            //还有一种情况是可以找到三条满足要求的边，这是有一条边的dy值为1。
+            //如果只有两条边，那么这种情况是不存在的，我们可以根据斜率判断哪条边在左，哪条边在右
+            //如果有第三条边的话，怎不插入横边，根据x的值来判断哪条边在左，哪条边在右。
+            vector<CEdge> CEdge_in_P;
+            for (int k=0; k<classifiedEdges[i].size(); k++) {
+                if (classifiedEdges[i][k].Pid == Pid) {
+                    CEdge_in_P.push_back(classifiedEdges[i][k]);
+                }
+            }
+            double dzx = - classifiedPolygons[i][j].a / (classifiedPolygons[i][j].c * ZOOM);
+            double dzy = classifiedPolygons[i][j].b / (classifiedPolygons[i][j].c * ZOOM);
+            struct AEdge AEdge_temp;
+            if (CEdge_in_P.size() == 2) { //正常的情况
+                if(CEdge_in_P[0].dx < CEdge_in_P[1].dx) {
+                    AEdge_temp = {CEdge_in_P[0].x, CEdge_in_P[0].dx, CEdge_in_P[0].dy, CEdge_in_P[1].x, CEdge_in_P[1].dx, CEdge_in_P[1].dy, CEdge_in_P[0].z, dzx, dzy, Pid};
+                } else {
+                    AEdge_temp = {CEdge_in_P[1].x, CEdge_in_P[1].dx, CEdge_in_P[1].dy, CEdge_in_P[0].x, CEdge_in_P[0].dx, CEdge_in_P[0].dy, CEdge_in_P[1].z, dzx, dzy, Pid};
+                }
+                activatedEdges.push_back(AEdge_temp);
+            } else if(CEdge_in_P.size() == 3) { //两种特殊情况
+                //三角形正好卡在扫描线上了，不渲染。
+                if(CEdge_in_P[0].dy == 1 && CEdge_in_P[1].dy == 1 && CEdge_in_P[2].dy == 1) {
+                    activatedPolygons.pop_back();
+                } else { //有一条边卡在了扫描线上
+//                    for(vector<CEdge>::iterator it=CEdge_in_P.begin(); it!=CEdge_in_P.end(); it++) {
+//                        if ((*it).dy == 1) {CEdge_in_P.erase(it);}
+//                    }
+                    for(vector<CEdge>::iterator it=CEdge_in_P.begin(); it!=CEdge_in_P.end();) {
+                        if ((*it).dy == 1) {CEdge_in_P.erase(it);}
+                        else {it++;}
+                    }
+                    if (CEdge_in_P.size()<2) {
+                        std::cout << "Error in inserting AEdgeTable!" << std::endl;
+                        exit(-1);
+                    }
+                    //根据x值大小判断哪一条边在左，哪一条边在右
+                    if(CEdge_in_P[0].x < CEdge_in_P[1].x) {
+                        AEdge_temp = {CEdge_in_P[0].x, CEdge_in_P[0].dx, CEdge_in_P[0].dy, CEdge_in_P[1].x, CEdge_in_P[1].dx, CEdge_in_P[1].dy, CEdge_in_P[0].z, dzx, dzy, Pid};
+                    } else {
+                        AEdge_temp = {CEdge_in_P[1].x, CEdge_in_P[1].dx, CEdge_in_P[1].dy, CEdge_in_P[0].x, CEdge_in_P[0].dx, CEdge_in_P[0].dy, CEdge_in_P[1].z, dzx, dzy, Pid};
+                    }
+                    activatedEdges.push_back(AEdge_temp);
+                }
+            } else {
+                std::cout << "Error in inserting AEdgeTable!" << std::endl;
+                exit(-1);
+            }
+        } //遍历相应height的分类多边形表
+        
+        //增量式更新「取出一个边对，更新每个边对中间的像素点」
+        //double yc = mesh.bounding_sphere_c.y;
+        double xc = mesh.bounding_sphere_c.x;
+        for(int i_ae=0; i_ae<activatedEdges.size(); i_ae++) {
+            double zx = activatedEdges[i_ae].zl;
+            int ul = (activatedEdges[i_ae].xl - xc)*ZOOM + width/2;
+            int ur = (activatedEdges[i_ae].xr - xc)*ZOOM + width/2;
+            for (int i_u=ul; i_u<ur; i_u++) {
+                //比较zx与当前zbuffer中的深度值
+                //当前zbuffer的坐标（i_u, i）
+                if (zx > zbuffer[i*width + i_u]) {
+                    zbuffer[i*width + i_u] = zx;
+                    //setPixel(framebuffer + i*width + i_u, );
+                    int offset = i*width + i_u;
+                    ptr[offset*4 + 0] = 0;
+                    ptr[offset*4 + 1] = 0;
+                    ptr[offset*4 + 2] = 0;
+                    //ptr[offset*4 + 3] = 255;
+                }
+                //每向➡️移动一个元素，更新深度值
+                zx += activatedEdges[i_ae].dzx;
+            }
+        }
+        
+        //更新活化边表：dyl = dyl - 1, dyr = dyr - 1
+        //如果dyl或dyr小于0，相应的边就要从一个边对中去掉，从活化边表中找到合适的边来代替
+        // xl = xl + dxl, xr = xr + dxr
+        // zl = zl + (dzl * dxl) + dzy
+        for(vector<AEdge>::iterator it=activatedEdges.begin(); it!=activatedEdges.end();) {
+            (*it).dyl -= 1;
+            (*it).dyr -= 1;
+            if ( (*it).dyl < 0 && (*it).dyr < 0 ) {
+                activatedEdges.erase(it);
+            } else if ( (*it).dyl < 0 ) {
+                // 遍历当前height的分类边表，找到对应Pid的边
+                for (int j=0; j<classifiedEdges[i].size(); j++) {
+                    if (classifiedEdges[i][j].Pid == (*it).Pid) {
+                        (*it).xl = classifiedEdges[i][j].x;
+                        (*it).dxl = classifiedEdges[i][j].dx;
+                        (*it).dyl = classifiedEdges[i][j].dy;
+                        (*it).zl = classifiedEdges[i][j].z;
+                        break;
+                    }
+                }
+                //==================================================⬇️
+                (*it).xl += (*it).dxl;
+                (*it).xr += (*it).dxr;
+                (*it).zl += ( (*it).dzx * (*it).dxl ) + (*it).dzy;
+                it ++;
+                //==================================================
+            } else if ( (*it).dyr < 0 ) {
+                for (int j=0; j<classifiedEdges[i].size(); j++) {
+                    if (classifiedEdges[i][j].Pid == (*it).Pid) {
+                        (*it).xr = classifiedEdges[i][j].x;
+                        (*it).dxr = classifiedEdges[i][j].dx;
+                        (*it).dyr = classifiedEdges[i][j].dy;
+                        break;
+                    }
+                }
+                //==================================================⬇️
+                (*it).xl += (*it).dxl;
+                (*it).xr += (*it).dxr;
+                (*it).zl += ( (*it).dzx * (*it).dxl ) + (*it).dzy;
+                it ++;
+                //==================================================
+            } else {
+                //==================================================⬇️
+                (*it).xl += (*it).dxl;
+                (*it).xr += (*it).dxr;
+                (*it).zl += ( (*it).dzx * (*it).dxl ) + (*it).dzy;
+                it ++;
+                //==================================================
+            }
+        }
+        //更新活化多边形表：dy = dy - 1（似乎没什么用）
+        //当dy<0时，该多边形要从活化多边形表中剔除
+        for(vector<Polygon>::iterator it=activatedPolygons.begin(); it!=activatedPolygons.end();) {
+            (*it).dy -= 1;
+            if ( (*it).dy < 0 ) {
+                activatedPolygons.erase(it);
+            } else { it ++; }
+        }
+        
+    } //处理第i条扫描线
+    
+    //如果有些边在这条扫描线处结束了，而其所在的多边形仍在活化多边形表内，则可以从分类多边形中找到该多边形在oxy平面上投影与扫描线相交的新边或新边对，修改或加入到活化表中。边在活化表中的顺序不重要！！！「活化边表中村的边对，分类边表中存的是边」
+    
+    
     
     
     

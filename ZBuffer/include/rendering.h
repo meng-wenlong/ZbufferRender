@@ -22,7 +22,9 @@ struct Polygon {
 
 //分类边
 struct CEdge {
-    int x;      //边上端点的x坐标 (应该是double型的)
+    //int x;      //边上端点的x坐标 (应该是double型的)
+    double x;
+    double z;   //边上端点的深度值
     double dx;  //相邻两条扫描线焦点的x坐标差
     int dy;     //边所跨越的扫描线数目
     int Pid;    //边所属的多边形的编号
@@ -110,17 +112,18 @@ struct CEdge processOneCEdge(vec3f vert0, vec3f vert1, double yc, double xc, uns
     int dy = vmax - vmin + 1;
     
     double x_ymax = (vert0.y > vert1.y)? vert0.x : vert1.x;
-    int u_ymax = zoom*(x_ymax - xc) + width/2;
+    double z_ymax = (vert0.y > vert1.y)? vert0.z : vert1.z;
+    //int u_ymax = zoom*(x_ymax - xc) + width/2;
     
     // dx = -1/k = -(x2 - x1)/(y2 - y1) = (x1 - x2)/(y2 - y1)
     // double dx = 1600;
     double delta_y = vert1.y - vert0.y;
-    double dx = (vert0.x - vert1.x) / delta_y; // 交给编译器来处理吧
+    double dx = (vert0.x - vert1.x) / (delta_y * zoom); // 交给编译器来处理吧
 //    if (delta_y > GLH_EPSILON_2) {
 //        dx = (vert0.x - vert1.x) / delta_y;
 //    } else {dx = width;} //对斜率太小的线的处理
     
-    struct CEdge tri_edge = {u_ymax, dx, dy, static_cast<int>(i)};
+    struct CEdge tri_edge = {x_ymax, z_ymax, dx, dy, static_cast<int>(i)};
     return tri_edge;
 }
 
