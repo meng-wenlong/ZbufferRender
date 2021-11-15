@@ -18,7 +18,7 @@
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-const unsigned int ZOOM = 1500;
+const unsigned int ZOOM = 1024;
 // ZOOM = 1000 表示obj中坐标变化了1相当于窗口中的坐标变化了1000
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -124,7 +124,7 @@ int main(int argc, const char * argv[]) {
     // 看看分类多边形表构建得对不对
     // たぶんいい感じ
     
-    // 次に、分類エッジテーブルを構築します
+    // 次に、分類エッジテーブルを構築します 
     // 「分类边表」中的x坐标只需要记录上端点的
     std::cout << "Building classified edge table..." << std::endl;
     vector<CEdge> classifiedEdges[height];
@@ -152,14 +152,17 @@ int main(int argc, const char * argv[]) {
     for (int y=0; y<width; y++) {
         for (int x=0; x<height; x++) {
             int offset = x + y*height;
-            zbuffer[offset] = -10000; //-10000应该是最小值了
+            zbuffer[offset] = -1e12; //-10000应该是最小值了
         }
     }
     
     
     //开始扫描
-    for (int i=0; i<height-50; i++) {  //处理第i条扫描线
+    for (int i=0; i<height-50; i++) {  //处理第i条扫描线 
         //检查分类多边形表，如果有新的多边形涉及该扫描线，则把它放入到活化多边形表中
+        if (i == 1000) {
+            //std::cout << "Debug" << std::endl;
+        }
         for (int j=0; j<classifiedPolygons[i].size(); j++) {
             activatedPolygons.push_back(classifiedPolygons[i][j]);
             int Pid = classifiedPolygons[i][j].Pid;
@@ -247,17 +250,24 @@ int main(int argc, const char * argv[]) {
         for(vector<AEdge>::iterator it=activatedEdges.begin(); it!=activatedEdges.end();) {
             (*it).dyl -= 1;
             (*it).dyr -= 1;
-            if ( (*it).dyl < 0 && (*it).dyr < 0 ) {
+            //为什么会出现dyl<-1，只有可能是在后面的else中没有找到对应的Pid的边
+            
+            if ( ((*it).dyl < 0 && (*it).dyr < 0) || (*it).dyl<-1 || (*it).dyr<-1 ) {
                 activatedEdges.erase(it);
             } else if ( (*it).dyl < 0 ) {
                 // 遍历当前height的分类边表，找到对应Pid的边
                 for (int j=0; j<classifiedEdges[i].size(); j++) {
+                    int flag = 0;
                     if (classifiedEdges[i][j].Pid == (*it).Pid) {
                         (*it).xl = classifiedEdges[i][j].x;
                         (*it).dxl = classifiedEdges[i][j].dx;
                         (*it).dyl = classifiedEdges[i][j].dy;
                         (*it).zl = classifiedEdges[i][j].z;
+                        flag = 1;
                         break;
+                    }
+                    if (flag == 0) {
+                        cout << "Debug" << endl;
                     }
                 }
                 //==================================================⬇️
@@ -267,12 +277,17 @@ int main(int argc, const char * argv[]) {
                 it ++;
                 //==================================================
             } else if ( (*it).dyr < 0 ) {
+                int flag = 0;
                 for (int j=0; j<classifiedEdges[i].size(); j++) {
                     if (classifiedEdges[i][j].Pid == (*it).Pid) {
                         (*it).xr = classifiedEdges[i][j].x;
                         (*it).dxr = classifiedEdges[i][j].dx;
                         (*it).dyr = classifiedEdges[i][j].dy;
+                        flag = 1;
                         break;
+                    }
+                    if (flag == 0) {
+                        cout << "Debug" << endl;
                     }
                 }
                 //==================================================⬇️

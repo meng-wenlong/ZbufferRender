@@ -25,7 +25,7 @@ struct CEdge {
     //int x;      //边上端点的x坐标 (应该是double型的)
     double x;
     double z;   //边上端点的深度值
-    double dx;  //相邻两条扫描线焦点的x坐标差
+    double dx;  //相邻两条扫描线交点的x坐标差
     int dy;     //边所跨越的扫描线数目
     int Pid;    //边所属的多边形的编号
 };
