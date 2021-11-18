@@ -158,11 +158,11 @@ int main(int argc, const char * argv[]) {
     
     
     //开始扫描
-    for (int i=0; i<height-50; i++) {  //处理第i条扫描线 
-        //检查分类多边形表，如果有新的多边形涉及该扫描线，则把它放入到活化多边形表中
-        if (i == 1000) {
-            //std::cout << "Debug" << std::endl;
+    for (int i=0; i<height-50; i++) {  //处理第i条扫描线
+        if (i==215) {
+            cout << "Debug" << endl;
         }
+        //检查分类多边形表，如果有新的多边形涉及该扫描线，则把它放入到活化多边形表中
         for (int j=0; j<classifiedPolygons[i].size(); j++) {
             activatedPolygons.push_back(classifiedPolygons[i][j]);
             int Pid = classifiedPolygons[i][j].Pid;
@@ -180,9 +180,11 @@ int main(int argc, const char * argv[]) {
                 }
             }
             double dzx = - classifiedPolygons[i][j].a / (classifiedPolygons[i][j].c * ZOOM);
-            double dzy = classifiedPolygons[i][j].b / (classifiedPolygons[i][j].c * ZOOM);
+            double dzy = - classifiedPolygons[i][j].b / (classifiedPolygons[i][j].c * ZOOM);
             struct AEdge AEdge_temp;
+            
             if (CEdge_in_P.size() == 2) { //正常的情况
+                //根据斜率判断哪条边在左
                 if(CEdge_in_P[0].dx < CEdge_in_P[1].dx) {
                     AEdge_temp = {CEdge_in_P[0].x, CEdge_in_P[0].dx, CEdge_in_P[0].dy, CEdge_in_P[1].x, CEdge_in_P[1].dx, CEdge_in_P[1].dy, CEdge_in_P[0].z, dzx, dzy, Pid};
                 } else {
@@ -191,21 +193,22 @@ int main(int argc, const char * argv[]) {
                 activatedEdges.push_back(AEdge_temp);
             } else if(CEdge_in_P.size() == 3) { //两种特殊情况
                 //三角形正好卡在扫描线上了，不渲染。
-                if(CEdge_in_P[0].dy == 1 && CEdge_in_P[1].dy == 1 && CEdge_in_P[2].dy == 1) {
+                if(CEdge_in_P[0].dy == 0 && CEdge_in_P[1].dy == 0 && CEdge_in_P[2].dy == 0) {
                     activatedPolygons.pop_back();
                 } else { //有一条边卡在了扫描线上
 //                    for(vector<CEdge>::iterator it=CEdge_in_P.begin(); it!=CEdge_in_P.end(); it++) {
 //                        if ((*it).dy == 1) {CEdge_in_P.erase(it);}
 //                    }
+                    //去除卡在扫描线上的边
                     for(vector<CEdge>::iterator it=CEdge_in_P.begin(); it!=CEdge_in_P.end();) {
-                        if ((*it).dy == 1) {CEdge_in_P.erase(it);}
+                        if ((*it).dy == 0) {CEdge_in_P.erase(it);}
                         else {it++;}
                     }
                     if (CEdge_in_P.size()<2) {
                         std::cout << "Error in inserting AEdgeTable!" << std::endl;
                         exit(-1);
                     }
-                    //根据x值大小判断哪一条边在左，哪一条边在右
+                    //根据x值大小判断哪一条边在左，哪一条边在右（x值小的在左）
                     if(CEdge_in_P[0].x < CEdge_in_P[1].x) {
                         AEdge_temp = {CEdge_in_P[0].x, CEdge_in_P[0].dx, CEdge_in_P[0].dy, CEdge_in_P[1].x, CEdge_in_P[1].dx, CEdge_in_P[1].dy, CEdge_in_P[0].z, dzx, dzy, Pid};
                     } else {
@@ -226,6 +229,7 @@ int main(int argc, const char * argv[]) {
             double zx = activatedEdges[i_ae].zl;
             int ul = (activatedEdges[i_ae].xl - xc)*ZOOM + width/2;
             int ur = (activatedEdges[i_ae].xr - xc)*ZOOM + width/2;
+            if (ul < 0 || ur >= width) {continue;}
             for (int i_u=ul; i_u<ur; i_u++) {
                 //比较zx与当前zbuffer中的深度值
                 //当前zbuffer的坐标（i_u, i）
@@ -255,20 +259,21 @@ int main(int argc, const char * argv[]) {
             if ( ((*it).dyl < 0 && (*it).dyr < 0) || (*it).dyl<-1 || (*it).dyr<-1 ) {
                 activatedEdges.erase(it);
             } else if ( (*it).dyl < 0 ) {
+                //左边先结束，更新左边
                 // 遍历当前height的分类边表，找到对应Pid的边
+                int flag = 0;
                 for (int j=0; j<classifiedEdges[i].size(); j++) {
-                    int flag = 0;
                     if (classifiedEdges[i][j].Pid == (*it).Pid) {
                         (*it).xl = classifiedEdges[i][j].x;
                         (*it).dxl = classifiedEdges[i][j].dx;
-                        (*it).dyl = classifiedEdges[i][j].dy;
+                        (*it).dyl = classifiedEdges[i][j].dy - 1;
                         (*it).zl = classifiedEdges[i][j].z;
                         flag = 1;
                         break;
                     }
-                    if (flag == 0) {
-                        cout << "Debug" << endl;
-                    }
+                } 
+                if (flag == 0) {
+                    cout << "Debug" << endl;
                 }
                 //==================================================⬇️
                 (*it).xl += (*it).dxl;
@@ -277,18 +282,19 @@ int main(int argc, const char * argv[]) {
                 it ++;
                 //==================================================
             } else if ( (*it).dyr < 0 ) {
+                //右边先结束更新右边
                 int flag = 0;
                 for (int j=0; j<classifiedEdges[i].size(); j++) {
                     if (classifiedEdges[i][j].Pid == (*it).Pid) {
                         (*it).xr = classifiedEdges[i][j].x;
                         (*it).dxr = classifiedEdges[i][j].dx;
-                        (*it).dyr = classifiedEdges[i][j].dy;
+                        (*it).dyr = classifiedEdges[i][j].dy - 1;
                         flag = 1;
                         break;
                     }
-                    if (flag == 0) {
-                        cout << "Debug" << endl;
-                    }
+                }
+                if (flag == 0) {
+                    cout << "Debug" << endl;
                 }
                 //==================================================⬇️
                 (*it).xl += (*it).dxl;
