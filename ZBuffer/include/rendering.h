@@ -22,21 +22,21 @@ struct Polygon {
 
 //分类边
 struct CEdge {
-    //int x;      //边上端点的x坐标 (应该是double型的)
-    double x;
-    double z;   //边上端点的深度值
-    double dx;  //相邻两条扫描线交点的x坐标差
+    int x;      //边下端点的x坐标
+    double z;   //边下端点的深度值
+    //double dx;  //相邻两条扫描线交点的x坐标差
+    vector<vector<int>> xi; //bresenham化的边的x坐标
     int dy;     //边所跨越的扫描线数目
     int Pid;    //边所属的多边形的编号
 };
 
 //活化边
 struct AEdge {
-    double  xl;     //左交点的x坐标
-    double  dxl;    //(左交点边上)两相邻扫描线交点的x坐标之差
+    int     xl;     //左交点的x坐标
+    vector<vector<int>> xil;    //(左交点边上)两相邻扫描线交点的x坐标之差
     int     dyl;    //剩余扫描线数
-    double  xr;
-    double  dxr;
+    int     xr;
+    vector<vector<int>> xir;
     int     dyr;
     double  zl;     //左交点处多边形所在的平面的深度值
     double  dzx;    //沿扫描线向右走过一个像素时，多边形所在的平面的深度增量
@@ -46,6 +46,7 @@ struct AEdge {
 
 void getPixel(Bitmap *bitmap, int u, int v, unsigned char *ptr);
 void buildClassifiedPolygonTable(vector<Polygon>* ptr, vector<TriangleFace>& faces, vector<vec3f>& verts, vec3f centor, unsigned int zoom, int width, int height);
+void bresenham(vector<int> &xloc, vector<int> &yloc, int x0, int x1, int y0, int y1);
 struct CEdge processOneCEdge(vec3f vert0, vec3f vert1, double yc, double xc, unsigned int zoom, int width, int height, unsigned int i);
 void buildClassifiedEdgeTable(vector<CEdge>* ptr, vector<TriangleFace>& faces, vector<vec3f>& verts, vec3f centor, unsigned int zoom, int width, int height);
 
@@ -72,8 +73,8 @@ void buildClassifiedPolygonTable(vector<Polygon>* ptr, vector<TriangleFace>& fac
     for (unsigned int i=0; i<faces.size(); i++) {
         // faces中有三个顶点，取三个顶点的y值
         // 求出面的y跨度和v跨度
-        double ymax = fmax( verts[ faces[i].v[0] ].y, verts[ faces[i].v[1] ].y, verts[ faces[i].v[2] ].y );
-        double ymin = fmin( verts[ faces[i].v[0] ].y, verts[ faces[i].v[1] ].y, verts[ faces[i].v[2] ].y );
+        double ymax = fmax( verts[ faces[i].v[0]-1 ].y, verts[ faces[i].v[1]-1 ].y, verts[ faces[i].v[2]-1 ].y );
+        double ymin = fmin( verts[ faces[i].v[0]-1 ].y, verts[ faces[i].v[1]-1 ].y, verts[ faces[i].v[2]-1 ].y );
         int vmax = zoom*(ymax - yc) + height/2; //转化为int
         int vmin = zoom*(ymin - yc) + height/2; //转化为int
         
@@ -82,15 +83,15 @@ void buildClassifiedPolygonTable(vector<Polygon>* ptr, vector<TriangleFace>& fac
         // b = (z2 - z1)*(x3 - x1) - (z3 - z1)*(x2 - x1)
         // c = (x2 - x1)*(y3 - y1) - (x3 - x1)*(y2 - y1)
         // d = -a * x1 - b * y1 - c * z1
-        double x1 = verts[ faces[i].v[0] ].x;
-        double x2 = verts[ faces[i].v[1] ].x;
-        double x3 = verts[ faces[i].v[2] ].x;
-        double y1 = verts[ faces[i].v[0] ].y;
-        double y2 = verts[ faces[i].v[1] ].y;
-        double y3 = verts[ faces[i].v[2] ].y;
-        double z1 = verts[ faces[i].v[0] ].z;
-        double z2 = verts[ faces[i].v[1] ].z;
-        double z3 = verts[ faces[i].v[2] ].z;
+        double x1 = floor( verts[ faces[i].v[0]-1 ].x * zoom );
+        double x2 = floor( verts[ faces[i].v[1]-1 ].x * zoom );
+        double x3 = floor( verts[ faces[i].v[2]-1 ].x * zoom );
+        double y1 = floor( verts[ faces[i].v[0]-1 ].y * zoom );
+        double y2 = floor( verts[ faces[i].v[1]-1 ].y * zoom );
+        double y3 = floor( verts[ faces[i].v[2]-1 ].y * zoom );
+        double z1 = floor( verts[ faces[i].v[0]-1 ].z * zoom );
+        double z2 = floor( verts[ faces[i].v[1]-1 ].z * zoom );
+        double z3 = floor( verts[ faces[i].v[2]-1 ].z * zoom );
         
         double a = (y2 - y1)*(z3 - z1) - (y3 - y1)*(z2 - z1);
         double b = (z2 - z1)*(x3 - x1) - (z3 - z1)*(x2 - x1);
@@ -103,6 +104,44 @@ void buildClassifiedPolygonTable(vector<Polygon>* ptr, vector<TriangleFace>& fac
     }
 }
 
+// bresenham算法将直线光栅化
+void bresenham(vector<int> &xloc, vector<int> &yloc, int x0, int x1, int y0, int y1) {
+    bool steep = abs(y1 - y0) > abs(x1 - x0);
+    if(steep) {
+        swap(x0, y0);
+        swap(x1, y1);
+    }
+    if (x0 > x1) {
+        swap(x0, x1);
+        swap(y0, y1);
+    }
+    int deltax = x1 - x0;
+    int deltay = abs(y1 - y0);
+    double error = 0;
+    double deltaerr = double(deltay) / deltax;
+    int ystep;
+    int y = y0;
+    if(y0 < y1) {
+        ystep = 1;
+    } else {
+        ystep = -1;
+    }
+    for (int x=x0; x<=x1; x++) {
+        if (steep) {
+            xloc.push_back(y);
+            yloc.push_back(x);
+        } else {
+            xloc.push_back(x);
+            yloc.push_back(y);
+        }
+        error += deltaerr;
+        if (error >= 0.5) {
+            y += ystep;
+            error -= 1;
+        }
+    }
+}
+
 //输入两个节点和相关参数，返回需要插入的CEdge
 struct CEdge processOneCEdge(vec3f vert0, vec3f vert1, double yc, double xc, unsigned int zoom, int width, int height, unsigned int i) {
     double ymax = fmax(vert0.y, vert1.y);
@@ -111,22 +150,42 @@ struct CEdge processOneCEdge(vec3f vert0, vec3f vert1, double yc, double xc, uns
     int vmin = zoom*(ymin - yc) + height/2; //转化为int
     int dy = vmax - vmin;
     
-    double x_ymax = (vert0.y > vert1.y)? vert0.x : vert1.x;
-    double z_ymax = (vert0.y > vert1.y)? vert0.z : vert1.z;
-    double x_ymin = (vert0.y < vert1.y)? vert0.x : vert1.x;
-    double z_ymin = (vert0.y < vert1.y)? vert0.z : vert1.z;
+    double d_x_ymax = (vert0.y > vert1.y)? vert0.x : vert1.x;
+    double d_z_ymax = (vert0.y > vert1.y)? vert0.z : vert1.z;
+    double d_x_ymin = (vert0.y < vert1.y)? vert0.x : vert1.x;
+    double d_z_ymin = (vert0.y < vert1.y)? vert0.z : vert1.z;
+    int x_ymin = (d_x_ymin - yc) * zoom + width/2;
+    double z_ymin = d_z_ymin * zoom;
     //int u_ymax = zoom*(x_ymax - xc) + width/2;
     
     // dx = -1/k = -(x2 - x1)/(y2 - y1) = (x1 - x2)/(y2 - y1)
     // double dx = 1600;
-    double delta_y = vert1.y - vert0.y;
+    // double delta_y = vert1.y - vert0.y;
     //相邻两条扫描线交点的x坐标差——1/k
-    double dx = (vert1.x - vert0.x) / (delta_y * zoom); // 交给编译器来处理吧
+    // double dx = (vert1.x - vert0.x) / (delta_y * zoom); // 交给编译器来处理吧
+    
 //    if (delta_y > GLH_EPSILON_2) {
 //        dx = (vert0.x - vert1.x) / delta_y;
 //    } else {dx = width;} //对斜率太小的线的处理
+    // 在这里出现了问题
+    vector<vector<int>> xi(dy+1);
+    vector<int> xloc;
+    vector<int> yloc;
+    int x0 = (vert0.x - xc) * zoom + width/2;
+    int x1 = (vert1.x - xc) * zoom + width/2;
+    int y0 = (vert0.y - yc) * zoom + height/2;
+    int y1 = (vert1.y - yc) * zoom + height/2;
+    // bresenham
+    bresenham(xloc, yloc, x0, x1, y0, y1);
+//    if (yloc.front() > yloc.back()) { //保证y是从小到大排列
+//        reverse(xloc.begin(), xloc.end());
+//        reverse(yloc.begin(), yloc.end());
+//    }
+    for (int k=0; k<yloc.size(); k++) {
+        xi[yloc[k] - vmin].push_back(xloc[k]);
+    }
     
-    struct CEdge tri_edge = {x_ymin, z_ymin, dx, dy, static_cast<int>(i)};
+    struct CEdge tri_edge = {x_ymin, z_ymin, xi, dy, static_cast<int>(i)};
     return tri_edge;
 }
 
@@ -135,27 +194,30 @@ void buildClassifiedEdgeTable(vector<CEdge>* ptr, vector<TriangleFace>& faces, v
     double yc = centor.y;
     double xc = centor.x;
     for (unsigned int i=0; i<faces.size(); i++) {
+        if(i==6273) {
+            printf("Debug\n");
+        }
         //每个三角形有三条边【0，1】【0，2】【1，2】
         // --- 处理边【0，1】---
         // double ymax = fmax( verts[ faces[i].v[0] ].y, verts[ faces[i].v[1] ].y );
         // int vmax = zoom*(ymax - yc) + height/2; //转化为int
-        double ymin = fmin( verts[ faces[i].v[0] ].y, verts[ faces[i].v[1] ].y );
+        double ymin = fmin( verts[ faces[i].v[0]-1 ].y, verts[ faces[i].v[1]-1 ].y );
         int vmin = zoom*(ymin - yc) + height/2; //转化为int
-        struct CEdge tri_edge = processOneCEdge(verts[ faces[i].v[0] ], verts[ faces[i].v[1] ], yc, xc, zoom, width, height, i);
+        struct CEdge tri_edge = processOneCEdge(verts[ faces[i].v[0]-1 ], verts[ faces[i].v[1]-1 ], yc, xc, zoom, width, height, i);
         // push
         ptr[vmin].push_back( tri_edge );
         
         // --- 处理边【0，2】---
-        ymin = fmin( verts[ faces[i].v[0] ].y, verts[ faces[i].v[2] ].y );
+        ymin = fmin( verts[ faces[i].v[0]-1 ].y, verts[ faces[i].v[2]-1 ].y );
         vmin = zoom*(ymin - yc) + height/2; //转化为int
-        tri_edge = processOneCEdge(verts[ faces[i].v[0] ], verts[ faces[i].v[2] ], yc, xc, zoom, width, height, i);
+        tri_edge = processOneCEdge(verts[ faces[i].v[0]-1 ], verts[ faces[i].v[2]-1 ], yc, xc, zoom, width, height, i);
         // push
         ptr[vmin].push_back( tri_edge );
         
         // --- 处理边【1，2】---
-        ymin = fmin( verts[ faces[i].v[1] ].y, verts[ faces[i].v[2] ].y );
+        ymin = fmin( verts[ faces[i].v[1]-1 ].y, verts[ faces[i].v[2]-1 ].y );
         vmin = zoom*(ymin - yc) + height/2; //转化为int
-        tri_edge = processOneCEdge(verts[ faces[i].v[1] ], verts[ faces[i].v[2] ], yc, xc, zoom, width, height, i);
+        tri_edge = processOneCEdge(verts[ faces[i].v[1]-1 ], verts[ faces[i].v[2]-1 ], yc, xc, zoom, width, height, i);
         // push
         ptr[vmin].push_back( tri_edge );
     }
