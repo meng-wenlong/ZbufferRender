@@ -158,10 +158,7 @@ int main(int argc, const char * argv[]) {
     
     
     //开始扫描
-    for (int i=0; i<height-50; i++) {  //处理第i条扫描线
-        if (i==215) {
-            cout << "Debug" << endl;
-        }
+    for (int i=0; i<height; i++) {  //处理第i条扫描线
         //检查分类多边形表，如果有新的多边形涉及该扫描线，则把它放入到活化多边形表中
         for (int j=0; j<classifiedPolygons[i].size(); j++) {
             activatedPolygons.push_back(classifiedPolygons[i][j]);
@@ -229,7 +226,7 @@ int main(int argc, const char * argv[]) {
             double zx = activatedEdges[i_ae].zl;
             int ul = (activatedEdges[i_ae].xl - xc)*ZOOM + width/2;
             int ur = (activatedEdges[i_ae].xr - xc)*ZOOM + width/2;
-            if (ul < 0 || ur >= width) {continue;}
+            // if (ul < 0 || ur >= width) {continue;}
             for (int i_u=ul; i_u<ur; i_u++) {
                 //比较zx与当前zbuffer中的深度值
                 //当前zbuffer的坐标（i_u, i）
