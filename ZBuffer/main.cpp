@@ -18,7 +18,7 @@
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-const unsigned int ZOOM = 512;
+const unsigned int ZOOM = 1024;
 // ZOOM = 1000 表示obj中坐标变化了1相当于窗口中的坐标变化了1000
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -112,7 +112,7 @@ int main(int argc, const char * argv[]) {
     // kernel(&tex, 800, 600, tex.pixels);
     
     //载入obj文件
-    std::string objfile = "resources/Body.obj";
+    std::string objfile = "resources/AvatarSkill_Dummy_Model.obj";
     TriangleMesh mesh;
     loadObj(objfile, mesh);
     
@@ -225,11 +225,11 @@ int main(int argc, const char * argv[]) {
                 //当前zbuffer的坐标（i_u, i）
                 if (zx > zbuffer[i*width + i_u]) {
                     zbuffer[i*width + i_u] = zx;
-                    //setPixel(framebuffer + i*width + i_u, );
-                    int offset = i*width + i_u;
-                    ptr[offset*4 + 0] = 0;
-                    ptr[offset*4 + 1] = 0;
-                    ptr[offset*4 + 2] = 0;
+                    setPixel(&framebuffer, i_u, i, mesh.faces[activatedEdges[i_ae].Pid], mesh.verts, mesh.uvs, mesh.bounding_sphere_c, &tex, ZOOM);
+                    //int offset = i*width + i_u;
+                    //ptr[offset*4 + 0] = 0;
+                    //ptr[offset*4 + 1] = 0;
+                    //ptr[offset*4 + 2] = 0;
                     //ptr[offset*4 + 3] = 255;
                 }
                 //每向➡️移动一个元素，更新深度值

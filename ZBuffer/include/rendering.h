@@ -66,6 +66,39 @@ void getPixel(Bitmap *bitmap, int u, int v, unsigned char *ptr) {
     ptr[3] = (bitmap->pixels)[offset*4 + 3];
 }
 
+void setPixel(Bitmap *framebuffer, int x, int y, TriangleFace face, vector<vec3f> &verts, vector<vec2f> &uvs, vec3f center, Bitmap *tex, const unsigned int zoom) {
+    double xc = center.x;
+    double yc = center.y;
+    int width = framebuffer->x;
+    int height = framebuffer->y;
+    int width_t = tex->x;
+    int height_t = tex->y;
+    //得到A，B，C三点的坐标
+    double xA = floor( (verts[ face.v[0]-1 ].x - xc)*zoom + width/2 );
+    double yA = floor( (verts[ face.v[0]-1 ].y - yc)*zoom + height/2 );
+    double xB = floor( (verts[ face.v[1]-1 ].x - xc)*zoom + width/2 );
+    double yB = floor( (verts[ face.v[1]-1 ].y - yc)*zoom + height/2 );
+    double xC = floor( (verts[ face.v[2]-1 ].x - xc)*zoom + width/2 );
+    double yC = floor( (verts[ face.v[2]-1 ].y - yc)*zoom + height/2 );
+    //得到ABC三点的rgba
+    unsigned char ColorA[4];
+    unsigned char ColorB[4];
+    unsigned char ColorC[4];
+    getPixel(tex, int(width_t*uvs[ face.w[0]-1 ].u), int(height_t*uvs[ face.w[0]-1 ].v), ColorA);
+    getPixel(tex, int(width_t*uvs[ face.w[1]-1 ].u), int(height_t*uvs[ face.w[1]-1 ].v), ColorB);
+    getPixel(tex, int(width_t*uvs[ face.w[2]-1 ].u), int(height_t*uvs[ face.w[2]-1 ].v), ColorC);
+    //得到alpha，beta，gama
+    double alpha = ((xB-x)*(yC-yB) + (y-yB)*(xC-xB)) / ((xB-xA)*(yC-yB) + (yA-yB)*(xC-xB));
+    double beta = ((xC-x)*(yA-yC) + (y-yC)*(xA-xC)) / ((xC-xB)*(yA-yC) + (yB-yC)*(xA-xC));
+    double gama = 1 - alpha - beta;
+    unsigned char *ptr = framebuffer->get_ptr();
+    int offset = y*width + x;
+    ptr[offset*4 + 0] = alpha*ColorA[0] + beta*ColorB[0] + gama*ColorC[0];
+    ptr[offset*4 + 1] = alpha*ColorA[1] + beta*ColorB[1] + gama*ColorC[1];
+    ptr[offset*4 + 2] = alpha*ColorA[2] + beta*ColorB[2] + gama*ColorC[2];
+    ptr[offset*4 + 3] = alpha*ColorA[3] + beta*ColorB[3] + gama*ColorC[3];
+}
+
 // 构建分类多边形表
 // 引用底层也是用指针实现的，使用引用的好处是可以让代码看起来简单，并且不需要拷贝数据
 void buildClassifiedPolygonTable(vector<Polygon>* ptr, vector<TriangleFace>& faces, vector<vec3f>& verts, vec3f centor, unsigned int zoom, int width, int height) {
@@ -194,9 +227,6 @@ void buildClassifiedEdgeTable(vector<CEdge>* ptr, vector<TriangleFace>& faces, v
     double yc = centor.y;
     double xc = centor.x;
     for (unsigned int i=0; i<faces.size(); i++) {
-        if(i==6273) {
-            printf("Debug\n");
-        }
         //每个三角形有三条边【0，1】【0，2】【1，2】
         // --- 处理边【0，1】---
         // double ymax = fmax( verts[ faces[i].v[0] ].y, verts[ faces[i].v[1] ].y );

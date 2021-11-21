@@ -46,8 +46,8 @@
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "188"
-            endingLineNumber = "188"
+            startingLineNumber = "221"
+            endingLineNumber = "221"
             landmarkName = "processOneCEdge(vert0, vert1, yc, xc, zoom, width, height, i)"
             landmarkType = "9">
          </BreakpointContent>
@@ -62,8 +62,8 @@
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "153"
-            endingLineNumber = "153"
+            startingLineNumber = "186"
+            endingLineNumber = "186"
             landmarkName = "processOneCEdge(vert0, vert1, yc, xc, zoom, width, height, i)"
             landmarkType = "9">
          </BreakpointContent>
@@ -78,8 +78,8 @@
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "86"
-            endingLineNumber = "86"
+            startingLineNumber = "119"
+            endingLineNumber = "119"
             landmarkName = "buildClassifiedPolygonTable(ptr, faces, verts, centor, zoom, width, height)"
             landmarkType = "9">
          </BreakpointContent>
@@ -94,8 +94,8 @@
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "184"
-            endingLineNumber = "184"
+            startingLineNumber = "217"
+            endingLineNumber = "217"
             landmarkName = "processOneCEdge(vert0, vert1, yc, xc, zoom, width, height, i)"
             landmarkType = "9">
          </BreakpointContent>
@@ -254,8 +254,8 @@
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "196"
-            endingLineNumber = "196"
+            startingLineNumber = "229"
+            endingLineNumber = "229"
             landmarkName = "buildClassifiedEdgeTable(ptr, faces, verts, centor, zoom, width, height)"
             landmarkType = "9">
          </BreakpointContent>
@@ -270,8 +270,8 @@
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "204"
-            endingLineNumber = "204"
+            startingLineNumber = "234"
+            endingLineNumber = "234"
             landmarkName = "buildClassifiedEdgeTable(ptr, faces, verts, centor, zoom, width, height)"
             landmarkType = "9">
          </BreakpointContent>
@@ -286,8 +286,8 @@
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "215"
-            endingLineNumber = "215"
+            startingLineNumber = "245"
+            endingLineNumber = "245"
             landmarkName = "buildClassifiedEdgeTable(ptr, faces, verts, centor, zoom, width, height)"
             landmarkType = "9">
          </BreakpointContent>
@@ -302,8 +302,8 @@
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "222"
-            endingLineNumber = "222"
+            startingLineNumber = "252"
+            endingLineNumber = "252"
             landmarkName = "buildClassifiedEdgeTable(ptr, faces, verts, centor, zoom, width, height)"
             landmarkType = "9">
          </BreakpointContent>
@@ -318,8 +318,8 @@
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "171"
-            endingLineNumber = "171"
+            startingLineNumber = "204"
+            endingLineNumber = "204"
             landmarkName = "processOneCEdge(vert0, vert1, yc, xc, zoom, width, height, i)"
             landmarkType = "9">
          </BreakpointContent>
@@ -359,16 +359,48 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "AF1BB39D-311D-41BC-B398-443BD8D0D5DF"
+            uuid = "6AD6A312-BEB3-4065-820B-26E899CA8B9C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ZBuffer/main.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "226"
+            endingLineNumber = "226"
+            landmarkName = "main(argc, argv)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "85303416-9333-47A2-BD9D-AF99EBC8B111"
             shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ZBuffer/main.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "302"
+            endingLineNumber = "302"
+            landmarkName = "main(argc, argv)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "FA8A9B5E-3D26-48BA-81B3-FDB6191C8F16"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ZBuffer/include/rendering.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "198"
-            endingLineNumber = "198"
-            landmarkName = "buildClassifiedEdgeTable(ptr, faces, verts, centor, zoom, width, height)"
+            startingLineNumber = "87"
+            endingLineNumber = "87"
+            landmarkName = "setPixel(framebuffer, x, y, face, verts, uvs, center, tex, zoom)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
