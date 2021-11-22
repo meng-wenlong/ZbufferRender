@@ -177,7 +177,7 @@ int main(int argc, const char * argv[]) {
                 double k0 = double( CEdge_in_P[0].xi.back().back() - CEdge_in_P[0].xi.front().front() ) / CEdge_in_P[0].dy;
                 double k1 = double( CEdge_in_P[1].xi.back().back() - CEdge_in_P[1].xi.front().front() ) / CEdge_in_P[1].dy;
                 if(k0 < k1) {
-                    AEdge_temp = {CEdge_in_P[0].x, CEdge_in_P[0].xi, CEdge_in_P[0].dy, (CEdge_in_P[1].x), CEdge_in_P[1].xi, CEdge_in_P[1].dy, CEdge_in_P[0].z, dzx, dzy, Pid};
+                    AEdge_temp = {CEdge_in_P[0].x, CEdge_in_P[0].xi, CEdge_in_P[0].dy, CEdge_in_P[1].x, CEdge_in_P[1].xi, CEdge_in_P[1].dy, CEdge_in_P[0].z, dzx, dzy, Pid};
                 } else {
                     AEdge_temp = {CEdge_in_P[1].x, CEdge_in_P[1].xi, CEdge_in_P[1].dy, CEdge_in_P[0].x, CEdge_in_P[0].xi, CEdge_in_P[0].dy, CEdge_in_P[1].z, dzx, dzy, Pid};
                 }
@@ -217,10 +217,11 @@ int main(int argc, const char * argv[]) {
             int ul = activatedEdges[i_ae].xil[l_index].front();
             int ur = activatedEdges[i_ae].xir[r_index].back();
             //深度映射
+            // deltax过大
             int deltax = ul - activatedEdges[i_ae].xl;
             int deltay = l_index;
-            double zx = activatedEdges[i_ae].zl + activatedEdges[i_ae].dzx * deltax + activatedEdges[i_ae].dzx * deltay;
-            for (int i_u=ul; i_u<=ur; i_u++) {
+            double zx = activatedEdges[i_ae].zl + activatedEdges[i_ae].dzx * deltax + activatedEdges[i_ae].dzy * deltay;
+            for (int i_u=ul; i_u<ur; i_u++) {
                 //比较zx与当前zbuffer中的深度值
                 //当前zbuffer的坐标（i_u, i）
                 if (zx > zbuffer[i*width + i_u]) {

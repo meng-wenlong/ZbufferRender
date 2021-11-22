@@ -93,10 +93,25 @@ void setPixel(Bitmap *framebuffer, int x, int y, TriangleFace face, vector<vec3f
     double gama = 1 - alpha - beta;
     unsigned char *ptr = framebuffer->get_ptr();
     int offset = y*width + x;
-    ptr[offset*4 + 0] = alpha*ColorA[0] + beta*ColorB[0] + gama*ColorC[0];
-    ptr[offset*4 + 1] = alpha*ColorA[1] + beta*ColorB[1] + gama*ColorC[1];
-    ptr[offset*4 + 2] = alpha*ColorA[2] + beta*ColorB[2] + gama*ColorC[2];
-    ptr[offset*4 + 3] = alpha*ColorA[3] + beta*ColorB[3] + gama*ColorC[3];
+    double uA = uvs[ face.w[0]-1 ].u;
+    double vA = uvs[ face.w[0]-1 ].v;
+    double uB = uvs[ face.w[1]-1 ].u;
+    double vB = uvs[ face.w[1]-1 ].v;
+    double uC = uvs[ face.w[2]-1 ].u;
+    double vC = uvs[ face.w[2]-1 ].v;
+    double u_ = alpha*uA + beta*uB + gama*uC;
+    double v_ = alpha*vA + beta*vB + gama*vC;
+    int u = u_ * width_t;
+    int v = v_ * height_t;
+    int offset_uv = v*width_t + u;
+//    ptr[offset*4 + 0] = alpha*ColorA[0] + beta*ColorB[0] + gama*ColorC[0];
+//    ptr[offset*4 + 1] = alpha*ColorA[1] + beta*ColorB[1] + gama*ColorC[1];
+//    ptr[offset*4 + 2] = alpha*ColorA[2] + beta*ColorB[2] + gama*ColorC[2];
+//    ptr[offset*4 + 3] = alpha*ColorA[3] + beta*ColorB[3] + gama*ColorC[3];
+    ptr[offset*4 + 0] = tex->pixels[offset_uv*4 + 0];
+    ptr[offset*4 + 1] = tex->pixels[offset_uv*4 + 1];
+    ptr[offset*4 + 2] = tex->pixels[offset_uv*4 + 2];
+    ptr[offset*4 + 3] = tex->pixels[offset_uv*4 + 3];
 }
 
 // 构建分类多边形表
@@ -116,15 +131,15 @@ void buildClassifiedPolygonTable(vector<Polygon>* ptr, vector<TriangleFace>& fac
         // b = (z2 - z1)*(x3 - x1) - (z3 - z1)*(x2 - x1)
         // c = (x2 - x1)*(y3 - y1) - (x3 - x1)*(y2 - y1)
         // d = -a * x1 - b * y1 - c * z1
-        double x1 = floor( verts[ faces[i].v[0]-1 ].x * zoom );
-        double x2 = floor( verts[ faces[i].v[1]-1 ].x * zoom );
-        double x3 = floor( verts[ faces[i].v[2]-1 ].x * zoom );
-        double y1 = floor( verts[ faces[i].v[0]-1 ].y * zoom );
-        double y2 = floor( verts[ faces[i].v[1]-1 ].y * zoom );
-        double y3 = floor( verts[ faces[i].v[2]-1 ].y * zoom );
-        double z1 = floor( verts[ faces[i].v[0]-1 ].z * zoom );
-        double z2 = floor( verts[ faces[i].v[1]-1 ].z * zoom );
-        double z3 = floor( verts[ faces[i].v[2]-1 ].z * zoom );
+        double x1 = verts[ faces[i].v[0]-1 ].x * zoom;
+        double x2 = verts[ faces[i].v[1]-1 ].x * zoom;
+        double x3 = verts[ faces[i].v[2]-1 ].x * zoom;
+        double y1 = verts[ faces[i].v[0]-1 ].y * zoom;
+        double y2 = verts[ faces[i].v[1]-1 ].y * zoom;
+        double y3 = verts[ faces[i].v[2]-1 ].y * zoom;
+        double z1 = verts[ faces[i].v[0]-1 ].z * zoom;
+        double z2 = verts[ faces[i].v[1]-1 ].z * zoom;
+        double z3 = verts[ faces[i].v[2]-1 ].z * zoom;
         
         double a = (y2 - y1)*(z3 - z1) - (y3 - y1)*(z2 - z1);
         double b = (z2 - z1)*(x3 - x1) - (z3 - z1)*(x2 - x1);
@@ -187,7 +202,7 @@ struct CEdge processOneCEdge(vec3f vert0, vec3f vert1, double yc, double xc, uns
     double d_z_ymax = (vert0.y > vert1.y)? vert0.z : vert1.z;
     double d_x_ymin = (vert0.y < vert1.y)? vert0.x : vert1.x;
     double d_z_ymin = (vert0.y < vert1.y)? vert0.z : vert1.z;
-    int x_ymin = (d_x_ymin - yc) * zoom + width/2;
+    int x_ymin = (d_x_ymin - xc) * zoom + width/2;
     double z_ymin = d_z_ymin * zoom;
     //int u_ymax = zoom*(x_ymax - xc) + width/2;
     
