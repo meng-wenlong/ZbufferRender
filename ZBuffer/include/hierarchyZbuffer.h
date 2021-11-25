@@ -143,7 +143,7 @@ public:
         this->z = z;
         if (father != NULL) {
             double zmin = min4(father->nw->z, father->ne->z, father->sw->z, father->se->z);
-            if (zmin < father->z) { father->updateZ(zmin); }
+            if (zmin != father->z) { father->updateZ(zmin); }
         }
     }
     
@@ -237,10 +237,44 @@ bool ztest(TriangleFace face, vector<vec3f> &verts, HierarchyZbuffer &hierarchyZ
     return true;
 }
 
+vec3f findBottomVec(vec3f A, vec3f B, vec3f C) {
+    if (A.y < B.y && A.y < C.y) {
+        return A;
+    }
+    if (B.y < A.y && B.y < C.y) {
+        return B;
+    }
+    if (C.y < A.y && C.y < B.y) {
+        return C;
+    }
+    vector<vec3f> temp;
+    temp.push_back(A);
+    temp.push_back(B);
+    temp.push_back(C);
+    double ymax = max3(A.y, B.y, C.y);
+    for (vector<vec3f>::iterator it = temp.begin(); it != temp.end();) {
+        if ((*it).y == ymax) {
+            it = temp.erase(it);
+        } else {
+            it ++;
+        }
+    }
+    //这下子，temp中只有两个vec
+    if (temp.size() != 2) {
+        printf("Error in finding bottom vec\n");
+        exit(-1);
+    }
+    if (temp[0].x < temp[1].x) {
+        return temp[0];
+    } else {
+        return temp[1];
+    }
+}
+
 // 绘制一个三角形
 void renderOneTriangle(TriangleFace face, vector<vec3f> &verts, vector<vec2f> uvs, Bitmap *tex, HierarchyZbuffer &hierarchyZbuffer, Bitmap &framebuffer) {
     int width = framebuffer.x;
-    int height = framebuffer.y;
+    // int height = framebuffer.y;
     int width_t = tex->x;
     int height_t = tex->y;
     //得到y的最大值和最小值
@@ -257,6 +291,11 @@ void renderOneTriangle(TriangleFace face, vector<vec3f> &verts, vector<vec2f> uv
     int ymin = min3(yA, yB, yC);
     int ymax = max3(yA, yB, yC);
     int dy = ymax - ymin;
+    
+    //找到左下的那个顶点
+    vec3f bottomVec = findBottomVec(verts[face.v[0]-1], verts[face.v[1]-1], verts[face.v[2]-1]);
+    int x_bottom = floor(bottomVec.x);
+    double z_bottom = bottomVec.z;
     
     double a = (yB - yA)*(zC - zA) - (yC - yA)*(zB - zA);
     double b = (zB - zA)*(xC - xA) - (zC - zA)*(xB - xA);
@@ -308,32 +347,39 @@ void renderOneTriangle(TriangleFace face, vector<vec3f> &verts, vector<vec2f> uv
     }
     //扫描线填充
     for (int y=ymin; y<=ymax; y++) {
+        //计算深度
+        int deltax = xmin[y-ymin] - x_bottom;
+        int deltay = y - ymin;
+        double zx = z_bottom + dzx*deltax + dzy*deltay;
         for (int x=xmin[y-ymin]; x<=xmax[y-ymin]; x++) {
-            //计算深度
-            
-            
-            double alpha = ((xB-x)*(yC-yB) + (y-yB)*(xC-xB)) / ((xB-xA)*(yC-yB) + (yA-yB)*(xC-xB));
-            double beta = ((xC-x)*(yA-yC) + (y-yC)*(xA-xC)) / ((xC-xB)*(yA-yC) + (yB-yC)*(xA-xC));
-            double gama = 1 - alpha - beta;
-            unsigned char *ptr = framebuffer.get_ptr();
-            int offset = y*width + x;
-            double uA = uvs[ face.w[0]-1 ].u;
-            double vA = uvs[ face.w[0]-1 ].v;
-            double uB = uvs[ face.w[1]-1 ].u;
-            double vB = uvs[ face.w[1]-1 ].v;
-            double uC = uvs[ face.w[2]-1 ].u;
-            double vC = uvs[ face.w[2]-1 ].v;
-            double u_ = alpha*uA + beta*uB + gama*uC;
-            double v_ = alpha*vA + beta*vB + gama*vC;
-            int u = u_ * width_t;
-            int v = v_ * height_t;
-            int offset_uv = v*width_t + u;
-            ptr[offset*4 + 0] = tex->pixels[offset_uv*4 + 0];
-            ptr[offset*4 + 1] = tex->pixels[offset_uv*4 + 1];
-            ptr[offset*4 + 2] = tex->pixels[offset_uv*4 + 2];
-            ptr[offset*4 + 3] = tex->pixels[offset_uv*4 + 3];
-            
-            
+            if (zx > hierarchyZbuffer.zbuffer[y*width + x]) {
+                //更新深度
+                hierarchyZbuffer.zbuffer[y*width + x] = zx;
+                hierarchyZbuffer.zbuffer_toQuadtree[y*width + x]->updateZ(zx);
+                
+                double alpha = ((xB-x)*(yC-yB) + (y-yB)*(xC-xB)) / ((xB-xA)*(yC-yB) + (yA-yB)*(xC-xB));
+                double beta = ((xC-x)*(yA-yC) + (y-yC)*(xA-xC)) / ((xC-xB)*(yA-yC) + (yB-yC)*(xA-xC));
+                double gama = 1 - alpha - beta;
+                unsigned char *ptr = framebuffer.get_ptr();
+                int offset = y*width + x;
+                double uA = uvs[ face.w[0]-1 ].u;
+                double vA = uvs[ face.w[0]-1 ].v;
+                double uB = uvs[ face.w[1]-1 ].u;
+                double vB = uvs[ face.w[1]-1 ].v;
+                double uC = uvs[ face.w[2]-1 ].u;
+                double vC = uvs[ face.w[2]-1 ].v;
+                double u_ = alpha*uA + beta*uB + gama*uC;
+                double v_ = alpha*vA + beta*vB + gama*vC;
+                int u = u_ * width_t;
+                int v = v_ * height_t;
+                int offset_uv = v*width_t + u;
+                ptr[offset*4 + 0] = tex->pixels[offset_uv*4 + 0];
+                ptr[offset*4 + 1] = tex->pixels[offset_uv*4 + 1];
+                ptr[offset*4 + 2] = tex->pixels[offset_uv*4 + 2];
+                ptr[offset*4 + 3] = tex->pixels[offset_uv*4 + 3];
+                
+            }
+            zx += dzx;
         }
     }
 }

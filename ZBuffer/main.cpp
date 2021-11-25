@@ -17,8 +17,9 @@
 #include "include/hierarchyZbuffer.h"
 
 // settings
-const unsigned int SCR_WIDTH = 512;     //必须是2^n
-const unsigned int SCR_HEIGHT = 512;    //必须是2^n
+#define DIM 512
+const unsigned int SCR_WIDTH = DIM;     //必须是2^n
+const unsigned int SCR_HEIGHT = DIM;    //必须是2^n
 const unsigned int ZOOM = 512;
 // ZOOM = 1000 表示obj中坐标变化了1相当于窗口中的坐标变化了1000
 
