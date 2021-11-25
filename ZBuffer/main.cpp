@@ -100,10 +100,28 @@ int main(int argc, const char * argv[]) {
     }
     
     //定义层次Zbuffer并初始化
-    HierarchyZbuffer hierarchyZbuffer(SCR_WIDTH);
+    HierarchyZbuffer hierarchyZbuffer(width);
+    
+    //verts转化为屏幕像素坐标
+    double xc = mesh.bounding_sphere_c.x;
+    double yc = mesh.bounding_sphere_c.y;
+    vector<vec3f> zoomed_verts;
+    for (int i=0; i<mesh.verts.size(); i++) {
+        vec3f temp;
+        temp.x = (mesh.verts[i].x - xc) * ZOOM + width/2;
+        temp.y = (mesh.verts[i].y - yc) * ZOOM + width/2;
+        temp.z = mesh.verts[i].z * ZOOM;
+        zoomed_verts.push_back(temp);
+    }
     
     //开始绘制（每个三角形）
-    
+    for (int i=0; i<mesh.faces.size(); i++) {
+        //判断三角形是否被挡住
+        bool passZtest = ztest(mesh.faces[i], zoomed_verts, hierarchyZbuffer);
+        if (passZtest) {
+            renderOneTriangle(mesh.faces[i], zoomed_verts, mesh.uvs, &tex, hierarchyZbuffer, framebuffer);
+        }
+    }
     
     while(!glfwWindowShouldClose(window))
     {
@@ -123,7 +141,7 @@ int main(int argc, const char * argv[]) {
     }
     
     glfwTerminate();
-    std::cout << "Hello, World!\n";
+    std::cout << "END!\n";
     return 0;
 }
 
