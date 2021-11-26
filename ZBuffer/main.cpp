@@ -15,6 +15,7 @@
 #include "include/load_obj.h" //必须写在fstream之后！
 #include "include/rendering.h"
 #include "include/hierarchyZbuffer.h"
+#include "include/octree.h"
 
 // settings
 #define DIM 512

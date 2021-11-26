@@ -55,6 +55,7 @@
 		E29953A5273D46EB00B58795 /* glfw3native.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glfw3native.h; sourceTree = "<group>"; };
 		E29953A6273D481E00B58795 /* libglfw.3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.3.dylib; path = ../../../../usr/local/Cellar/glfw/3.3.4/lib/libglfw.3.3.dylib; sourceTree = "<group>"; };
 		E2D96C71274E9173000C57DD /* hierarchyZbuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hierarchyZbuffer.h; sourceTree = "<group>"; };
+		E2D96C72274FE7B3000C57DD /* octree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = octree.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +111,7 @@
 				E223BFF8273E4D98005F7643 /* load_obj.h */,
 				E223BFF9273E8682005F7643 /* rendering.h */,
 				E2D96C71274E9173000C57DD /* hierarchyZbuffer.h */,
+				E2D96C72274FE7B3000C57DD /* octree.h */,
 			);
 			path = include;
 			sourceTree = "<group>";
