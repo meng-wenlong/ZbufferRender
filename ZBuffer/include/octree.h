@@ -184,7 +184,7 @@ public:
             if (!divided) {     //在空间内，空间满了。如果没有分割，先分割空间
                 this->subdivide();
                 for (int i=0; i<faces.size(); i++) {
-                    this->insrt(faces[i], verts);
+                    this->insrt(faces[i], verts); //这一步很关键，如果节点满了，要讲节点内的面插入到子节点
                 }
             }
             //在空间内，空间满了。插入子空间
@@ -206,13 +206,13 @@ bool cubeZtest(OctreeNode *cube, vector<vec3f> &verts, HierarchyZbuffer &hierarc
     QuardtreeNode *node = hierarchyZbuffer.Quadtree;
     bool inNode = true;
     while (inNode) {
-        if (node->nw->inThisNode(&face, verts.data())) {
+        if (node->nw->cubeInThisNode(cube->boundary)) {
             node = node->nw;
-        } else if(node->ne->inThisNode(&face, verts.data())) {
+        } else if(node->ne->cubeInThisNode(cube->boundary)) {
             node = node->ne;
-        } else if(node->sw->inThisNode(&face, verts.data())) {
+        } else if(node->sw->cubeInThisNode(cube->boundary)) {
             node = node->sw;
-        } else if(node->se->inThisNode(&face, verts.data())) {
+        } else if(node->se->cubeInThisNode(cube->boundary)) {
             node = node->se;
         } else {
             inNode = false;

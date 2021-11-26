@@ -115,6 +115,20 @@ int main(int argc, const char * argv[]) {
         temp.z = mesh.verts[i].z * ZOOM;
         zoomed_verts.push_back(temp);
     }
+    vec3f zoomed_bounding_box[2];
+    for (int i=0; i<2; i++) {
+        zoomed_bounding_box[i].x = (mesh.bounding_box[i].x - xc)*ZOOM + width/2;
+        zoomed_bounding_box[i].y = (mesh.bounding_box[i].y - yc)*ZOOM + width/2;
+        zoomed_bounding_box[i].z = mesh.bounding_box[i].z * ZOOM;
+    }
+    
+    
+    //建立场景八叉树
+    OctreeNode ot(zoomed_bounding_box, 20);
+    
+    for (int i=0; i<mesh.faces.size(); i++) {
+        ot.insrt(mesh.faces.data(), zoomed_verts.data());
+    }
     
     //开始绘制（每个三角形）
     for (int i=0; i<mesh.faces.size(); i++) {

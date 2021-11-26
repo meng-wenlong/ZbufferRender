@@ -13,6 +13,7 @@
 #include "bitmap.h"
 #include "tri_vec.h"
 #include "rendering.h"
+//#include "octree.h"
 
 using namespace std;
 
@@ -132,6 +133,25 @@ public:
         bool CinNode = xC>=xmin && xC<=xmax && yC>=ymin && yC<=ymax;
         
         if (AinNode && BinNode && CinNode) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    bool cubeInThisNode (vec3f *boundary) {
+        double cube_xmin = boundary[0].x;
+        double cube_xmax = boundary[1].x;
+        double cube_ymin = boundary[0].y;
+        double cube_ymax = boundary[1].y;
+        double xmin = this->boundary[0].u;
+        double xmax = this->boundary[1].u;
+        double ymin = this->boundary[0].v;
+        double ymax = this->boundary[1].v;
+        
+        bool condition_x = cube_xmin >= xmin && cube_xmax <= xmax;
+        bool condition_y = cube_ymin >= ymin && cube_ymax <= ymax;
+        if(condition_x && condition_y) {
             return true;
         } else {
             return false;
