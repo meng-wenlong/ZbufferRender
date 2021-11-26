@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <stack>
 
 #include "include/load_obj.h" //必须写在fstream之后！
 #include "include/rendering.h"
@@ -115,29 +116,57 @@ int main(int argc, const char * argv[]) {
         temp.z = mesh.verts[i].z * ZOOM;
         zoomed_verts.push_back(temp);
     }
-    vec3f zoomed_bounding_box[2];
-    for (int i=0; i<2; i++) {
-        zoomed_bounding_box[i].x = (mesh.bounding_box[i].x - xc)*ZOOM + width/2;
-        zoomed_bounding_box[i].y = (mesh.bounding_box[i].y - yc)*ZOOM + width/2;
-        zoomed_bounding_box[i].z = mesh.bounding_box[i].z * ZOOM;
-    }
+    vec3f whole_bounding_box[2];
+    whole_bounding_box[0].z = mesh.bounding_box[0].z * ZOOM;
+    whole_bounding_box[1].z = mesh.bounding_box[1].z * ZOOM;
+    whole_bounding_box[0].x = 0;
+    whole_bounding_box[1].x = width - 1;
+    whole_bounding_box[0].y = 0;
+    whole_bounding_box[1].y = height - 1;
     
     
     //建立场景八叉树
-    OctreeNode ot(zoomed_bounding_box, 20);
+    OctreeNode ot(whole_bounding_box, 20);
     
     for (int i=0; i<mesh.faces.size(); i++) {
-        ot.insrt(mesh.faces.data(), zoomed_verts.data());
+        ot.insrt(mesh.faces.data() + i, zoomed_verts.data());
     }
+    printf("INFO: Building tree finished!\n");
     
     //开始绘制（每个三角形）
-    for (int i=0; i<mesh.faces.size(); i++) {
-        //判断三角形是否被挡住
-        bool passZtest = ztest(mesh.faces[i], zoomed_verts, hierarchyZbuffer);
-        if (passZtest) {
-            renderOneTriangle(mesh.faces[i], zoomed_verts, mesh.uvs, &tex, hierarchyZbuffer, framebuffer);
+    stack<OctreeNode *> nodeStack;
+    nodeStack.push(&ot);
+    OctreeNode *node;
+    while (!nodeStack.empty()) {
+        node = nodeStack.top();
+        //process
+        bool passZtest = cubeZtest(node, zoomed_verts, hierarchyZbuffer);
+        nodeStack.pop();
+        if (!passZtest) {
+            //pass
+        } else if(node->divided == true) {
+            nodeStack.push(node->nwb);
+            nodeStack.push(node->neb);
+            nodeStack.push(node->swb);
+            nodeStack.push(node->seb);
+            nodeStack.push(node->nwf);
+            nodeStack.push(node->nef);
+            nodeStack.push(node->swf);
+            nodeStack.push(node->sef);
+        } else {
+            for (int i=0; i<node->faces.size(); i++) {
+                renderOneTriangle(*(node->faces[i]), zoomed_verts, mesh.uvs, &tex, hierarchyZbuffer, framebuffer);
+            }
         }
+        
     }
+//    for (int i=0; i<mesh.faces.size(); i++) {
+//        //判断三角形是否被挡住
+//        bool passZtest = ztest(mesh.faces[i], zoomed_verts, hierarchyZbuffer);
+//        if (passZtest) {
+//            renderOneTriangle(mesh.faces[i], zoomed_verts, mesh.uvs, &tex, hierarchyZbuffer, framebuffer);
+//        }
+//    }
     
     while(!glfwWindowShouldClose(window))
     {
