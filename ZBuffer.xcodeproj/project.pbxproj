@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E20057472755C4FE00B7E76A /* libglfw.3.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E20057462755C4FE00B7E76A /* libglfw.3.3.dylib */; };
+		E20057482755C4FE00B7E76A /* libglfw.3.3.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = E20057462755C4FE00B7E76A /* libglfw.3.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		E21BE690273D619B00EE6DFC /* stb_image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E21BE68E273D619B00EE6DFC /* stb_image.cpp */; };
 		E2499B8D273D244C00B7015C /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2499B8C273D244C00B7015C /* main.cpp */; };
 		E2499B9A273D272200B7015C /* glad.c in Sources */ = {isa = PBXBuildFile; fileRef = E2499B99273D272200B7015C /* glad.c */; };
 		E2499B9D273D27ED00B7015C /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2499B9C273D27ED00B7015C /* OpenGL.framework */; platformFilter = maccatalyst; };
-		E29953A7273D481E00B58795 /* libglfw.3.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E29953A6273D481E00B58795 /* libglfw.3.3.dylib */; };
-		E29953A8273D481E00B58795 /* libglfw.3.3.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = E29953A6273D481E00B58795 /* libglfw.3.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,7 +31,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				E29953A8273D481E00B58795 /* libglfw.3.3.dylib in Embed Libraries */,
+				E20057482755C4FE00B7E76A /* libglfw.3.3.dylib in Embed Libraries */,
 			);
 			name = "Embed Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -39,6 +39,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E20057462755C4FE00B7E76A /* libglfw.3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.3.dylib; path = ZBuffer/lib/libglfw.3.3.dylib; sourceTree = "<group>"; };
 		E21BE68D273D616200EE6DFC /* stb_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		E21BE68E273D619B00EE6DFC /* stb_image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = stb_image.cpp; sourceTree = "<group>"; };
 		E21BE691273D80D100EE6DFC /* bitmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = "<group>"; };
@@ -53,7 +54,6 @@
 		E29953A2273D462C00B58795 /* khrplatform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = khrplatform.h; sourceTree = "<group>"; };
 		E29953A4273D46AE00B58795 /* glfw3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glfw3.h; sourceTree = "<group>"; };
 		E29953A5273D46EB00B58795 /* glfw3native.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glfw3native.h; sourceTree = "<group>"; };
-		E29953A6273D481E00B58795 /* libglfw.3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.3.dylib; path = ../../../../usr/local/Cellar/glfw/3.3.4/lib/libglfw.3.3.dylib; sourceTree = "<group>"; };
 		E2D96C71274E9173000C57DD /* hierarchyZbuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hierarchyZbuffer.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -62,7 +62,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E29953A7273D481E00B58795 /* libglfw.3.3.dylib in Frameworks */,
+				E20057472755C4FE00B7E76A /* libglfw.3.3.dylib in Frameworks */,
 				E2499B9D273D27ED00B7015C /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -117,7 +117,7 @@
 		E2499B9B273D27ED00B7015C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				E29953A6273D481E00B58795 /* libglfw.3.3.dylib */,
+				E20057462755C4FE00B7E76A /* libglfw.3.3.dylib */,
 				E2499B9C273D27ED00B7015C /* OpenGL.framework */,
 			);
 			name = Frameworks;
@@ -334,6 +334,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/glfw/3.3.4/lib,
+					"$(PROJECT_DIR)/ZBuffer/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -347,6 +348,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/glfw/3.3.4/lib,
+					"$(PROJECT_DIR)/ZBuffer/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 #include "include/load_obj.h" //必须写在fstream之后！
 #include "include/rendering.h"
@@ -104,14 +105,15 @@ int main(int argc, const char * argv[]) {
     HierarchyZbuffer hierarchyZbuffer(width);
     
     //verts转化为屏幕像素坐标
-    double xc = mesh.bounding_sphere_c.x;
-    double yc = mesh.bounding_sphere_c.y;
+    double xc = (mesh.bounding_box[0].x + mesh.bounding_box[1].x)/2;
+    double yc = (mesh.bounding_box[0].y + mesh.bounding_box[1].y)/2;
+    double zc = (mesh.bounding_box[0].z + mesh.bounding_box[1].z)/2;
     vector<vec3f> zoomed_verts;
     for (int i=0; i<mesh.verts.size(); i++) {
         vec3f temp;
         temp.x = (mesh.verts[i].x - xc) * ZOOM + width/2;
         temp.y = (mesh.verts[i].y - yc) * ZOOM + width/2;
-        temp.z = mesh.verts[i].z * ZOOM;
+        temp.z = (mesh.verts[i].z - zc) * ZOOM;
         zoomed_verts.push_back(temp);
     }
     
@@ -130,10 +132,34 @@ int main(int argc, const char * argv[]) {
         processInput(window);   //按ESC退出
         
         // 渲染
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        //glDrawPixels(bitmap.x, bitmap.y, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.pixels);
-        //glDrawPixels(width_t, height_t, GL_RGBA, GL_UNSIGNED_BYTE, texture);
+        for (int y=0; y<width; y++) {   //fb清零
+            for (int x=0; x<height; x++) {
+                int offset = x + y*height;
+                ptr[offset*4 + 0] = 255;
+                ptr[offset*4 + 1] = 255;
+                ptr[offset*4 + 2] = 255;
+                ptr[offset*4 + 3] = 255;
+            }
+        }
+        HierarchyZbuffer hierarchyZbuffer(width); //重新初始化Zbuffer
+        //旋转zoomed_verts
+        static double theta = 0;
+        for (int i=0; i<zoomed_verts.size(); i++) {
+            zoomed_verts[i].x -= width/2;
+            double xt = zoomed_verts[i].x * cos(theta) + zoomed_verts[i].z * sin(theta);
+            double zt = zoomed_verts[i].z * cos(theta) - zoomed_verts[i].x * sin(theta);
+            zoomed_verts[i].x = xt + width/2;
+            zoomed_verts[i].z = zt;
+        }
+        theta += 0.01;
+        for (int i=0; i<mesh.faces.size(); i++) { //绘制
+            //判断三角形是否被挡住
+            bool passZtest = ztest(mesh.faces[i], zoomed_verts, hierarchyZbuffer);
+            if (passZtest) {
+                renderOneTriangle(mesh.faces[i], zoomed_verts, mesh.uvs, &tex, hierarchyZbuffer, framebuffer);
+            }
+        }
+        
         glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, framebuffer.get_ptr());
         
         // 检查并调用事件，交换缓冲
